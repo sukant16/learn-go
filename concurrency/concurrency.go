@@ -1,0 +1,25 @@
+package concurrency
+
+//import "net/http"
+
+type WebsiteChecker func(string) bool
+
+type result struct {
+	string
+	bool
+}
+// CheckWebsite returns true if the URL returns a 200 status code, false otherwise.
+func CheckWebsite(wc WebsiteChecker, urls []string) map[string]bool {
+	results := make(map[string]bool)
+	resultChannel := make(chan result)
+	for _, url := range urls {
+		go func(u string) {
+			resultChannel <- result{u, wc(u)}
+		}(url)
+	}
+	for i:= 0; i<len(urls); i++{
+		r:= <- resultChannel
+		results[r.string] = r.bool
+	}
+	return results
+}
